@@ -194,6 +194,7 @@ namespace dxvk {
     HMONITOR                        m_monitor;
     bool                            m_monitorHasOutput = true;
     bool                            m_frameStatisticsDisjoint = true;
+    bool                            m_supportsHDR = false;
     wsi::DxvkWindowState            m_windowState;
 
     double                          m_frameRateOption = 0.0;

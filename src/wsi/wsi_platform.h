@@ -44,6 +44,8 @@ namespace dxvk::wsi {
 
     virtual WsiEdidData getMonitorEdid(HMONITOR hMonitor) = 0;
 
+    virtual bool supportsHDR(HMONITOR hMonitor);
+
     // Window
 
     virtual void getWindowSize(

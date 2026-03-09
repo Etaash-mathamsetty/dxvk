@@ -223,6 +223,75 @@ namespace dxvk::wsi {
     return retrieveDisplayMode(hMonitor, ENUM_REGISTRY_SETTINGS, pMode);
   }
 
+  static bool getAdvancedColorEnabled(const MONITORINFOEXW &monInfo)
+  {
+    // Try and find the monitor device path that matches
+    // the name of our HMONITOR from the monitor info.
+    LONG result = ERROR_SUCCESS;
+    std::vector<DISPLAYCONFIG_PATH_INFO> paths;
+    std::vector<DISPLAYCONFIG_MODE_INFO> modes;
+    do {
+      uint32_t pathCount = 0, modeCount = 0;
+      if ((result = ::GetDisplayConfigBufferSizes(QDC_ONLY_ACTIVE_PATHS, &pathCount, &modeCount)) != ERROR_SUCCESS) {
+        Logger::err(str::format("getAdvancedColorEnabled: GetDisplayConfigBufferSizes failed. ret: ", result, " LastError: ", GetLastError()));
+        return {};
+      }
+      paths.resize(pathCount);
+      modes.resize(modeCount);
+      result = ::QueryDisplayConfig(QDC_ONLY_ACTIVE_PATHS, &pathCount, paths.data(), &modeCount, modes.data(), nullptr);
+    } while (result == ERROR_INSUFFICIENT_BUFFER);
+
+    if (result != ERROR_SUCCESS) {
+      Logger::err(str::format("getAdvancedColorEnabled: QueryDisplayConfig failed. ret: ", result, " LastError: ", GetLastError()));
+      return {};
+    }
+
+    // Link a source name -> target name
+    for (const auto& path : paths) {
+      DISPLAYCONFIG_SOURCE_DEVICE_NAME sourceName;
+      sourceName.header.type      = DISPLAYCONFIG_DEVICE_INFO_GET_SOURCE_NAME;
+      sourceName.header.size      = sizeof(sourceName);
+      sourceName.header.adapterId = path.sourceInfo.adapterId;
+      sourceName.header.id        = path.sourceInfo.id;
+      if ((result = ::DisplayConfigGetDeviceInfo(&sourceName.header)) != ERROR_SUCCESS) {
+        Logger::err(str::format("getAdvancedColorEnabled: DisplayConfigGetDeviceInfo with DISPLAYCONFIG_DEVICE_INFO_GET_SOURCE_NAME failed. ret: ", result, " LastError: ", GetLastError()));
+        continue;
+      }
+
+      DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO advInfo;
+      advInfo.header.type      = DISPLAYCONFIG_DEVICE_INFO_GET_ADVANCED_COLOR_INFO;
+      advInfo.header.size      = sizeof(advInfo);
+      advInfo.header.adapterId = path.targetInfo.adapterId;
+      advInfo.header.id        = path.targetInfo.id;
+      if ((result = ::DisplayConfigGetDeviceInfo(&advInfo.header)) != ERROR_SUCCESS) {
+        Logger::err(str::format("getAdvancedColorEnabled: DisplayConfigGetDeviceInfo with DISPLAYCONFIG_DEVICE_INFO_GET_ADVANCED_COLOR_INFO failed. ret: ", result, " LastError: ", GetLastError()));
+        continue;
+      }
+
+      // Does the source match the GDI device we are looking for?
+      // If so, return the value back.
+      if (!wcscmp(sourceName.viewGdiDeviceName, monInfo.szDevice))
+        return advInfo.advancedColorSupported && advInfo.advancedColorEnabled;
+    }
+
+    Logger::err("getAdvancedColorEnabled: Failed to find a link from source -> target.");
+    return false;
+  }
+
+  bool Win32WsiDriver::supportsHDR(HMONITOR hMonitor)
+  {
+    // Query monitor info to get the device name
+    ::MONITORINFOEXW monInfo;
+    monInfo.cbSize = sizeof(monInfo);
+
+    if (!::GetMonitorInfoW(hMonitor, reinterpret_cast<MONITORINFO*>(&monInfo))) {
+      Logger::err("Win32 WSI: retrieveDisplayMode: Failed to query monitor info");
+      return false;
+    }
+
+    return getAdvancedColorEnabled(monInfo);
+  }
+
   static std::wstring getMonitorDevicePath(HMONITOR hMonitor) {
     // Get the device name of the monitor.
     MONITORINFOEXW monInfo;

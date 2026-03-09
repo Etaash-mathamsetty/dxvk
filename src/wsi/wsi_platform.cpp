@@ -199,4 +199,8 @@ namespace dxvk::wsi {
     return s_driver->getMonitorEdid(hMonitor);
   }
 
+  bool supportsHDR(HMONITOR hMonitor) {
+    return s_driver->supportsHDR(hMonitor);
+  }
+
 }

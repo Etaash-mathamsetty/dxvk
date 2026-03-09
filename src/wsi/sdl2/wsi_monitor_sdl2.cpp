@@ -155,6 +155,11 @@ namespace dxvk::wsi {
     return {};
   }
 
+  bool Sdl2WsiDriver::supportsHDR(HMONITOR hMonitor)
+  {
+    return false;
+  }
+
 }
 
 #endif

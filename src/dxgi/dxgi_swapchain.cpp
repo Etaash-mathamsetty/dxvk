@@ -45,6 +45,8 @@ namespace dxvk {
     // Ensure that RGBA16 swap chains are scRGB if supported
     UpdateColorSpace(m_desc.Format, m_colorSpace);
 
+    m_supportsHDR = wsi::supportsHDR(m_monitor);
+
     // Somewhat hacky way to determine whether to forward the
     // display refresh rate in windowed mode even with a sync
     // interval of 1.
@@ -995,7 +997,7 @@ namespace dxvk {
 
     // Only expose HDR10 color space if HDR option is enabled
     if (ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020)
-      return m_factory->GetOptions()->enableHDR && m_presenter->CheckColorSpaceSupport(ColorSpace);
+      return (m_factory->GetOptions()->enableHDR || m_supportsHDR) && m_presenter->CheckColorSpaceSupport(ColorSpace);
 
     return false;
   }

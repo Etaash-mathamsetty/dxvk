@@ -232,6 +232,8 @@ namespace dxvk {
       return E_FAIL;
     }
 
+    bool hdrEnabled = wsi::supportsHDR(m_monitor);
+
     pDesc->AttachedToDesktop     = 1;
     pDesc->Rotation              = DXGI_MODE_ROTATION_UNSPECIFIED;
     pDesc->Monitor               = m_monitor;
@@ -240,12 +242,7 @@ namespace dxvk {
     // (HDR) if the user has the HDR setting enabled in Windows.
     // Games can still punt into HDR mode by using CheckColorSpaceSupport
     // and SetColorSpace1.
-    //
-    // We have no way of checking the actual Windows colorspace as the
-    // only public method for this *is* DXGI which we are re-implementing.
-    // So we just pick our color space based on the DXVK_HDR env var
-    // and the punting from SetColorSpace1.
-    pDesc->ColorSpace            = m_monitorInfo->CurrentColorSpace();
+    pDesc->ColorSpace            = hdrEnabled ? DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 : m_monitorInfo->CurrentColorSpace();
     pDesc->RedPrimary[0]         = m_metadata.redPrimary[0];
     pDesc->RedPrimary[1]         = m_metadata.redPrimary[1];
     pDesc->GreenPrimary[0]       = m_metadata.greenPrimary[0];
@@ -657,6 +654,7 @@ namespace dxvk {
     // Query current display mode
     wsi::WsiMode activeWsiMode = { };
     wsi::getCurrentDisplayMode(m_monitor, &activeWsiMode);
+    bool hdrSupported = wsi::supportsHDR(m_monitor);
 
     // Get the display metadata + colorimetry
     wsi::WsiEdidData edidData = wsi::getMonitorEdid(m_monitor);
@@ -669,9 +667,11 @@ namespace dxvk {
     else
       Logger::err("DXGI: Failed to parse display metadata + colorimetry info, using blank.");
 
+    m_metadata.hdrEnabled = hdrSupported;
+
     // Normalize either the display metadata we got back, or our
     // blank one to get something sane here.
-    NormalizeDisplayMetadata(m_monitorInfo->DefaultColorSpace() != DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709, m_metadata);
+    NormalizeDisplayMetadata(m_monitorInfo->DefaultColorSpace() != DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709 || hdrSupported, m_metadata);
 
     auto refreshPeriod = computeRefreshPeriod(
       activeWsiMode.refreshRate.numerator,
