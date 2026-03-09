@@ -45,7 +45,7 @@ namespace dxvk {
     // Ensure that RGBA16 swap chains are scRGB if supported
     UpdateColorSpace(m_desc.Format, m_colorSpace);
 
-    const DxgiOptions* options = m_factory->GetOptions()
+    const DxgiOptions* options = m_factory->GetOptions();
     m_supportsHDR = wsi::supportsHDR(m_monitor) && !options->disableHDR;
 
     // Somewhat hacky way to determine whether to forward the
