@@ -233,7 +233,7 @@ namespace dxvk {
     }
 
     const DxgiOptions* options = m_factory->GetOptions();
-    bool hdrEnabled = wsi::supportsHDR(m_monitor);
+    bool hdrEnabled = wsi::supportsHDR(m_monitor) && !options->disableHDR;
 
     pDesc->AttachedToDesktop     = 1;
     pDesc->Rotation              = DXGI_MODE_ROTATION_UNSPECIFIED;
@@ -243,7 +243,7 @@ namespace dxvk {
     // (HDR) if the user has the HDR setting enabled in Windows.
     // Games can still punt into HDR mode by using CheckColorSpaceSupport
     // and SetColorSpace1.
-    pDesc->ColorSpace            = (hdrEnabled && !options->disableHDR) ?
+    pDesc->ColorSpace            = (hdrEnabled) ?
                                     DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 :
                                     m_monitorInfo->CurrentColorSpace();
     pDesc->RedPrimary[0]         = m_metadata.redPrimary[0];

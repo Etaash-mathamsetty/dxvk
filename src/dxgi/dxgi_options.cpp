@@ -123,10 +123,15 @@ namespace dxvk {
 
     bool enableUe4Workarounds = config.getOption<bool>("dxgi.enableUe4Workarounds", false);
 
+    if (isHDRDisallowed(enableUe4Workarounds))
+    {
+      Logger::info("HDR was force disabled as a UE4 DX11 game was detected.");
+      this->disableHDR = true;
+    }
+
     if (this->enableHDR && isHDRDisallowed(enableUe4Workarounds)) {
       Logger::info("HDR was configured to be enabled, but has been force disabled as a UE4 DX11 game was detected.");
       this->enableHDR = false;
-      this->disableHDR = true;
     }
   }
   

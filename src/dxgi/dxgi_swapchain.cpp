@@ -45,7 +45,8 @@ namespace dxvk {
     // Ensure that RGBA16 swap chains are scRGB if supported
     UpdateColorSpace(m_desc.Format, m_colorSpace);
 
-    m_supportsHDR = wsi::supportsHDR(m_monitor);
+    const DxgiOptions* options = m_factory->GetOptions()
+    m_supportsHDR = wsi::supportsHDR(m_monitor) && !options->disableHDR;
 
     // Somewhat hacky way to determine whether to forward the
     // display refresh rate in windowed mode even with a sync
@@ -999,7 +1000,7 @@ namespace dxvk {
     if (ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020)
     {
       const DxgiOptions* options = m_factory->GetOptions();
-      return (options->enableHDR || (m_supportsHDR && !options->disableHDR)) && m_presenter->CheckColorSpaceSupport(ColorSpace);
+      return (options->enableHDR || m_supportsHDR) && m_presenter->CheckColorSpaceSupport(ColorSpace);
     }
 
     return false;
@@ -1030,8 +1031,7 @@ namespace dxvk {
     // FIXME: PuntColorSpace doesn't work correctly with HDR detection path, this is a workaround
     if (SUCCEEDED(hr))
     {
-      const DxgiOptions* options = m_factory->GetOptions();
-      if (!(m_supportsHDR && !options->disableHDR))
+      if (!m_supportsHDR)
         m_monitorInfo->PuntColorSpace(ColorSpace);
     }
 
