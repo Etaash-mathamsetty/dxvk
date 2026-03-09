@@ -1028,8 +1028,12 @@ namespace dxvk {
     // punt us into that one on the DXGI output.
 
     // FIXME: PuntColorSpace doesn't work correctly with HDR detection path, this is a workaround
-    if (SUCCEEDED(hr) && !m_supportsHDR)
-      m_monitorInfo->PuntColorSpace(ColorSpace);
+    if (SUCCEEDED(hr))
+    {
+      const DxgiOptions* options = m_factory->GetOptions();
+      if (!(m_supportsHDR && !options->disableHDR))
+        m_monitorInfo->PuntColorSpace(ColorSpace);
+    }
 
     return hr;
   }
