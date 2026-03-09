@@ -119,12 +119,14 @@ namespace dxvk {
     }
 
     this->enableHDR = config.getOption<bool>("dxgi.enableHDR", env::getEnvVar("DXVK_HDR") == "1");
+    this->disableHDR = config.getOption<bool>("dxgi.disableHDR", env::getEnvVar("DXVK_NO_HDR") == "1");
 
     bool enableUe4Workarounds = config.getOption<bool>("dxgi.enableUe4Workarounds", false);
 
     if (this->enableHDR && isHDRDisallowed(enableUe4Workarounds)) {
       Logger::info("HDR was configured to be enabled, but has been force disabled as a UE4 DX11 game was detected.");
       this->enableHDR = false;
+      this->disableHDR = true;
     }
   }
   
