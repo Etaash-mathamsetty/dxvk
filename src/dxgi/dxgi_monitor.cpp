@@ -6,7 +6,6 @@ namespace dxvk {
   : m_parent(pParent)
   , m_options(options)
   , m_globalColorSpace(DefaultColorSpace()) {
-
   }
 
 

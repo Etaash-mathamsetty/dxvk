@@ -24,6 +24,8 @@ namespace dxvk::wsi {
     float minLuminance;
     float maxLuminance;
     float maxFullFrameLuminance;
+
+    bool hdrEnabled;
   };
 
   /**

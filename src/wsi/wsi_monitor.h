@@ -27,6 +27,7 @@ namespace dxvk::wsi {
     WsiRational  refreshRate;
     uint32_t     bitsPerPixel;
     bool         interlaced;
+    bool         hdrEnabled;
   };
 
   /**
@@ -148,5 +149,7 @@ namespace dxvk::wsi {
     * \returns \c EDID if successful, an empty vector if failure.
     */
   WsiEdidData getMonitorEdid(HMONITOR hMonitor);
+
+  bool supportsHDR(HMONITOR hMonitor);
 
 }

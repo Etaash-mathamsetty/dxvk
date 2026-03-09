@@ -50,6 +50,9 @@ namespace dxvk {
     UpdateSourceSize(m_desc.Width, m_desc.Height);
     UpdateColorSpace(m_desc.Format, m_colorSpace);
 
+    const DxgiOptions* options = m_factory->GetOptions();
+    m_supportsHDR = wsi::supportsHDR(m_monitor) && !options->disableHDR;
+
     // Somewhat hacky way to determine whether to forward the
     // display refresh rate in windowed mode even with a sync
     // interval of 1.
@@ -1028,7 +1031,10 @@ namespace dxvk {
 
     // Only expose HDR10 color space if HDR option is enabled
     if (ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020)
-      return m_factory->GetOptions()->enableHDR && m_presenter->CheckColorSpaceSupport(ColorSpace);
+    {
+      const DxgiOptions* options = m_factory->GetOptions();
+      return (options->enableHDR || m_supportsHDR) && m_presenter->CheckColorSpaceSupport(ColorSpace);
+    }
 
     return false;
   }
@@ -1054,8 +1060,13 @@ namespace dxvk {
 
     // If this was a colorspace other than our current one,
     // punt us into that one on the DXGI output.
+
+    // FIXME: PuntColorSpace doesn't work correctly with HDR detection path, this is a workaround
     if (SUCCEEDED(hr))
-      m_monitorInfo->PuntColorSpace(ColorSpace);
+    {
+      if (!m_supportsHDR)
+        m_monitorInfo->PuntColorSpace(ColorSpace);
+    }
 
     return hr;
   }

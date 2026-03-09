@@ -55,6 +55,9 @@ namespace dxvk {
     /// Enable HDR
     bool enableHDR;
 
+    /// Disable HDR (due to workarounds)
+    bool disableHDR;
+
     /// Enable support for dummy composition swapchains
     bool enableDummyCompositionSwapchain;
 

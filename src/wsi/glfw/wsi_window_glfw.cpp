@@ -169,6 +169,11 @@ namespace dxvk::wsi {
     return glfwCreateWindowSurface(instance, window, nullptr, pSurface);
   }
 
+  bool GlfwWsiDriver::supportsHDR(HMONITOR hMonitor)
+  {
+    return false;
+  }
+
 }
 
 #endif
