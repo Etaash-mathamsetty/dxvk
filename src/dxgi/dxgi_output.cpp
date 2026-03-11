@@ -657,7 +657,9 @@ namespace dxvk {
     // Query current display mode
     wsi::WsiMode activeWsiMode = { };
     wsi::getCurrentDisplayMode(m_monitor, &activeWsiMode);
-    bool hdrSupported = wsi::supportsHDR(m_monitor);
+
+    const DxgiOptions* options = m_factory->GetOptions();
+    bool hdrSupported = wsi::supportsHDR(m_monitor) && !options->disableHDR;
 
     // Get the display metadata + colorimetry
     wsi::WsiEdidData edidData = wsi::getMonitorEdid(m_monitor);
