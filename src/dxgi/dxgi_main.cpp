@@ -23,7 +23,7 @@ namespace dxvk {
 
 extern "C" {
   DLLEXPORT HRESULT __stdcall CreateDXGIFactory2(UINT Flags, REFIID riid, void **ppFactory) {
-    dxvk::Logger::warn("CreateDXGIFactory2: Ignoring flags");
+    if (Flags) dxvk::Logger::warn("CreateDXGIFactory2: Ignoring flags");
     return dxvk::createDxgiFactory(Flags, riid, ppFactory);
   }
 
